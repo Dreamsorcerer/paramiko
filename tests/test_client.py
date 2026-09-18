@@ -184,7 +184,7 @@ class ClientTest(unittest.TestCase):
         self.ts.add_server_key(host_key)
         server = NullServer(
             allowed_keys=allowed_keys,
-            public_blob=public_blob),
+            public_blob=public_blob,
             reject_certs=reject_certs,
         )
         if delay:

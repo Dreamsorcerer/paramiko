@@ -660,13 +660,18 @@ class SSHClient(ClosingContextManager):
         except SSHException as e:
             # Transport doesn't always raise AuthenticationException, so
             # retry on any SSHException if possible.
-            if key.public_blob is None or not self._transport.is_active():
-                raise
             self._log(
                 DEBUG,
-                "Certificate was refused ({}); retrying with the plain"
-                " public key".format(type(e).__name__),
+                "Public key auth failed ({}: {}); cert={}, active={}".format(
+                    type(e).__name__,
+                    e,
+                    key.public_blob is not None,
+                    self._transport.is_active()
+                ),
             )
+            if key.public_blob is None:
+                raise
+            self._log(DEBUG, "Retrying with the certificate detached")
             key.public_blob = None
             return self._transport.auth_publickey(username, key)
 

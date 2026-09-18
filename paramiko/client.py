@@ -658,12 +658,15 @@ class SSHClient(ClosingContextManager):
         """
         try:
             return self._transport.auth_publickey(username, key)
-        except AuthenticationException:
-            if key.public_blob is None:
+        except SSHException as e:
+            # Transport doesn't always raise AuthenticationException, so
+            # retry on any SSHException if possible.
+            if key.public_blob is None or not self._transport.is_active():
                 raise
             self._log(
                 DEBUG,
-                "Certificate was refused; retrying with the plain public key",
+                "Certificate was refused ({}); retrying with the plain"
+                " public key".format(type(e).__name__),
             )
             key.public_blob = None
             return self._transport.auth_publickey(username, key)

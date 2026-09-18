@@ -36,7 +36,6 @@ from paramiko.ed25519key import Ed25519Key
 from paramiko.hostkeys import HostKeys
 from paramiko.rsakey import RSAKey
 from paramiko.ssh_exception import (
-    AuthenticationException,
     BadHostKeyException,
     NoValidConnectionsError,
     SSHException,

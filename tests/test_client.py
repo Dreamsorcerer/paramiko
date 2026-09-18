@@ -61,6 +61,9 @@ class NullServer(paramiko.ServerInterface):
         # PubkeyAcceptedAlgorithms omits them (or which doesn't trust the
         # signing CA) does
         self.__reject_certs = kwargs.pop("reject_certs", False)
+        # Record, per offer, whether it carried a cert, so tests can assert
+        # on the sequence of identities the client tried
+        self.offered_certs = []
         super().__init__(*args, **kwargs)
 
     def get_allowed_auths(self, username):
@@ -86,6 +89,10 @@ class NullServer(paramiko.ServerInterface):
             key.get_name() in self.__allowed_keys
             and key.get_fingerprint() == expected
         )
+        # Reject anything bearing a cert, if the test asked for that
+        if self.__reject_certs and key.public_blob is not None:
+            return paramiko.AUTH_FAILED
+        self.offered_certs.append(key.public_blob is not None)
         # Reject anything bearing a cert, if the test asked for that
         if self.__reject_certs and key.public_blob is not None:
             return paramiko.AUTH_FAILED
@@ -369,6 +376,7 @@ class SSHClientTest(ClientTest):
                 key_filename=_support(f"{type_}.key"),
                 reject_certs=True,
             )
+            assert self.server.offered_certs == [True, False]
 
     def test_default_key_locations_trigger_cert_loads_if_found(self):
         # TODO: what it says on the tin: ~/.ssh/id_rsa tries to load

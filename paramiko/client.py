@@ -36,6 +36,7 @@ from paramiko.ed25519key import Ed25519Key
 from paramiko.hostkeys import HostKeys
 from paramiko.rsakey import RSAKey
 from paramiko.ssh_exception import (
+    AuthenticationException,
     BadHostKeyException,
     NoValidConnectionsError,
     SSHException,
@@ -657,21 +658,13 @@ class SSHClient(ClosingContextManager):
         """
         try:
             return self._transport.auth_publickey(username, key)
-        except SSHException as e:
-            # Transport doesn't always raise AuthenticationException, so
-            # retry on any SSHException if possible.
-            self._log(
-                DEBUG,
-                "Public key auth failed ({}: {}); cert={}, active={}".format(
-                    type(e).__name__,
-                    e,
-                    key.public_blob is not None,
-                    self._transport.is_active()
-                ),
-            )
+        except AuthenticationException:
             if key.public_blob is None:
                 raise
-            self._log(DEBUG, "Retrying with the certificate detached")
+            self._log(
+                DEBUG,
+                "Certificate was refused; retrying with the plain public key",
+            )
             key.public_blob = None
             return self._transport.auth_publickey(username, key)
 
@@ -789,9 +782,7 @@ class SSHClient(ClosingContextManager):
                     )
                     # for 2-factor auth a successfully auth'd key will result
                     # in ['password']
-                    allowed_types = set(
-                        self._auth_publickey(username, key)
-                    )
+                    allowed_types = set(self._auth_publickey(username, key))
                     two_factor = allowed_types & two_factor_types
                     if not two_factor:
                         return

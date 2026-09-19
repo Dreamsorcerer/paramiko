@@ -186,7 +186,7 @@ class ClientTest(unittest.TestCase):
         keypath = _support("ecdsa-256.key")
         host_key = paramiko.ECDSAKey.from_private_key_file(keypath)
         self.ts.add_server_key(host_key)
-        server = NullServer(
+        self.server = server = NullServer(
             allowed_keys=allowed_keys,
             public_blob=public_blob,
             reject_certs=reject_certs,

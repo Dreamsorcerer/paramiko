@@ -89,9 +89,6 @@ class NullServer(paramiko.ServerInterface):
             key.get_name() in self.__allowed_keys
             and key.get_fingerprint() == expected
         )
-        # Reject anything bearing a cert, if the test asked for that
-        if self.__reject_certs and key.public_blob is not None:
-            return paramiko.AUTH_FAILED
         self.offered_certs.append(key.public_blob is not None)
         # Reject anything bearing a cert, if the test asked for that
         if self.__reject_certs and key.public_blob is not None:

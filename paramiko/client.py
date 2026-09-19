@@ -713,7 +713,7 @@ class SSHClient(ClosingContextManager):
                     ),
                 )
                 allowed_types = set(
-                    self._auth_publickey(username, pkey)
+                    self._transport.auth_publickey(username, pkey)
                 )
                 two_factor = allowed_types & two_factor_types
                 if not two_factor:
@@ -731,7 +731,7 @@ class SSHClient(ClosingContextManager):
                             key_filename, pkey_class, passphrase
                         )
                         allowed_types = set(
-                            self._transport.auth_publickey(username, key)
+                            self._auth_publickey(username, key)
                         )
                         two_factor = allowed_types & two_factor_types
                         if not two_factor:
@@ -751,7 +751,7 @@ class SSHClient(ClosingContextManager):
                     # for 2-factor auth a successfully auth'd key password
                     # will return an allowed 2fac auth method
                     allowed_types = set(
-                        self._auth_publickey(username, key)
+                        self._transport.auth_publickey(username, key)
                     )
                     two_factor = allowed_types & two_factor_types
                     if not two_factor:
@@ -790,7 +790,7 @@ class SSHClient(ClosingContextManager):
                     # for 2-factor auth a successfully auth'd key will result
                     # in ['password']
                     allowed_types = set(
-                        self._transport.auth_publickey(username, key)
+                        self._auth_publickey(username, key)
                     )
                     two_factor = allowed_types & two_factor_types
                     if not two_factor:
